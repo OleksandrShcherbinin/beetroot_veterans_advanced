@@ -162,8 +162,177 @@ def quick_sort(array: list[int]) -> list[int]:
 
 
 # list_to_sort = [3, 2, 1, 4, 5, 6, 9, 7, 0, 8]
-list_to_sort = [random.randint(1, 1000) for _ in range(10000)]
-t1 = time.perf_counter()
-result = quick_sort(list_to_sort)
-print(time.perf_counter() - t1)
+# list_to_sort = [random.randint(1, 1000) for _ in range(10000)]
+# t1 = time.perf_counter()
+# result = quick_sort(list_to_sort)
+# print(time.perf_counter() - t1)
 # print(result)
+
+
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class BinarySearchTree:
+    def __init__(self, root: Node):
+        self.root = root
+
+    def add(self, value, node = None):
+        if not node:
+            node = self.root
+
+        if value < node.value:
+            if node.left is None:
+                node.left = Node(value)
+            else:
+                self.add(value, node.left)
+        else:
+            if node.right is None:
+                node.right = Node(value)
+            else:
+                self.add(value, node.right)
+
+    def preorder(self, node):
+        if not node:
+            return
+        print(node.value, end=' -> ')
+        self.preorder(node.left)
+        self.preorder(node.right)
+
+    def search(self, value):
+        print('\nStart')
+        node = self.root
+        while node is not None:
+            print(node.value)
+            if node.value == value:
+                return True
+            if node.value > value:
+                node = node.left
+            else:
+                node = node.right
+
+        return False
+
+
+root = Node(5)
+search_tree = BinarySearchTree(root)
+
+search_tree.add(3)
+search_tree.add(4)
+search_tree.add(2)
+search_tree.add(1)
+search_tree.add(7)
+search_tree.add(9)
+search_tree.add(8)
+#                  5
+#                /  \
+#              3     7
+#            /   \     \
+#          2       4     9
+#         /            /
+#        1            8
+
+
+# search_tree.preorder(root)
+# search_tree.search(9)
+
+
+class AVLTreeNode:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+        self.height = 1
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class AVLTree:
+    def __init__(self):
+        self.root = None
+
+    def height(self, node: AVLTreeNode):
+        if node is None:
+            return 0
+        return node.height
+
+    def update_height(self, node: AVLTreeNode):
+        node.height = max(self.height(node.left), self.height(node.right)) + 1
+
+    def balance_factor(self, node: AVLTreeNode) -> int:
+        return self.height(node.left) - self.height(node.right)
+
+    def rotate_left(self, x):
+        right = x.right
+        temp = right.left
+        right.left = x
+        x.right = temp
+        self.update_height(x)
+        self.update_height(right)
+        return right
+
+    def rotate_right(self, x):
+        left = x.left
+        temp = left.right
+        left.right = x
+        x.left = temp
+        self.update_height(x)
+        self.update_height(left)
+        return left
+
+    def balance(self, node: AVLTreeNode):
+        balance_factor = self.balance_factor(node)
+        if balance_factor > 1:
+            if self.balance_factor(node.left) < 0:
+                node.left = self.rotate_left(node.left)
+            return self.rotate_right(node)
+
+        if balance_factor < -1:
+            if self.balance_factor(node.right) > 0:
+                node.right = self.rotate_right(node.right)
+            return self.rotate_left(node)
+
+        return node
+
+    def insert(self, node: AVLTreeNode, value):
+        if node is None:
+            return AVLTreeNode(value)
+
+        if value < node.value:
+            node.left = self.insert(node.left, value)
+        elif value > node.value:
+            node.right = self.insert(node.right, value)
+        else:
+            return node  # No duplicates
+
+        self.update_height(node)
+        self.balance(node)
+
+    def insert_value(self, value):
+        self.root = self.insert(self.root, value)
+
+    def inorder(self, node: AVLTreeNode):
+        if node:
+            self.inorder(node.left)
+            print(node.value, end=' ')
+            self.inorder(node.right)
+
+
+
+search_tree = AVLTree()
+search_tree.insert_value(10)
+search_tree.insert_value(20)
+search_tree.insert_value(30)
+search_tree.insert_value(25)
+search_tree.insert_value(5)
+search_tree.insert_value(1)
+search_tree.insert_value(3)
+
+search_tree.inorder(search_tree.root)
