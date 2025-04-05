@@ -161,3 +161,7 @@ cython_debug/
 .DS_Store
 
 social.db
+northwind.db
+people.db
+
+scraper/files

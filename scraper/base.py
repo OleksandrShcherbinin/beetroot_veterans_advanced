@@ -29,14 +29,13 @@ class Parser(ABC):
 
 class DataStorage(ABC):
     @abstractmethod
-    def save(self, data, filename):
+    def save(self, data: list[dict[str, Any]], path_connection: str) -> None:
         pass
 
 
 class Scraper(ABC):
-    def __init__(self, url: str, storage: DataStorage, timeout: int = 5) -> None:
+    def __init__(self, url: str, timeout: int = 5) -> None:
         self._url = url
-        self._storage = storage
         self._timeout = timeout
 
     @abstractmethod

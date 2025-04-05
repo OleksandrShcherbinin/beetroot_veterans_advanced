@@ -11,10 +11,11 @@ class RozetkaListingParser(HtmlParser):
     def parse(self):
         tree = super().parse()
         result_list = []
-        items = [item for item in tree.css('.item')]
+        items = [item for item in tree.css('.content')]
         for item in items:
-            title = item.css('.goods-tile__title')
+            title = item.css('.tile-title')
             information = title[0].text().split('/') if title else ''
+            print(information)
             if not title:
                 continue
 

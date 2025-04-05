@@ -12,14 +12,15 @@ class RozetkaScraper(Scraper):
         response = TextResponse(self._url, self._timeout)
         parser = RozetkaListingParser(response)
         parsed_data = parser.parse()
-        self._storage.save(parsed_data, 'files/rozetka_notebooks.csv')
+        storage = CsvStorage()
+        storage.save(parsed_data, 'files/rozetka.csv')
         return parsed_data
 
 
 
 def main() -> None:
     url = 'https://rozetka.com.ua/notebooks/c80004/'
-    scraper = RozetkaScraper(url, CsvStorage())
+    scraper = RozetkaScraper(url)
     scraper.scrape()
 
 

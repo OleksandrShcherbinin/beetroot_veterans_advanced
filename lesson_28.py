@@ -126,11 +126,11 @@ VALUES
 # execute_query(connection, create_likes)
 
 
-def select_query(connection: sqlite3.Connection, query: str) -> list | None:
+def select_query(connection: sqlite3.Connection, query: str, *params) -> list | None:
     cursor = connection.cursor()
     result = None
     try:
-        cursor.execute(query)
+        cursor.execute(query, params)
         result = cursor.fetchall()
         return result
     except sqlite3.Error as e:
@@ -192,3 +192,7 @@ posts = select_query(connection, select_posts_likes)
 print('*' * 100)
 for post in posts:
     print(post)
+
+
+if __name__ == '__main__':
+    pass
