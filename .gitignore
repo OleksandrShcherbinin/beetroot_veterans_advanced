@@ -165,3 +165,5 @@ northwind.db
 people.db
 
 scraper/files
+files/data_new
+files/data_new.json
