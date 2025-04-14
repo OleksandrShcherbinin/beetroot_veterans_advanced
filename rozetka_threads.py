@@ -24,6 +24,7 @@ class RozetkaListingParser:
         self._main_url = main_url
         self._last_page = last_page
         self.session = Session()
+        self._id_counter = 0
 
     def scrape(self):
         que = self._fill_queue()
@@ -64,13 +65,14 @@ class RozetkaListingParser:
 
     def _parse(self, html_string: str) -> None:
         tree = HTMLParser(html_string)
-        # result_list = []
+        result_list = []
         items = [item for item in tree.css('.item')]
         with self.LOCK:
             for item in items:
                 title = item.css('.tile-title')
                 if not title:
                     continue
+                self._id_counter += 1
                 information = title[0].text().split('/')
                 old_price = item.css('.old-price')
                 new_price = item.css('.price')
@@ -78,6 +80,7 @@ class RozetkaListingParser:
                 image_links = [link.attrs.get('src') for link in images if
                                link.attrs.get('src')]
                 item = {
+                    'id': self._id_counter,
                     'title': information[0].strip(),
                     'monitor': information[1].strip() if len(
                         information) > 1 else '',
@@ -95,30 +98,41 @@ class RozetkaListingParser:
                         (old - new) / old * 100) if old and new else 0,
                     'images': image_links if image_links else [],
                 }
-                # result_list.append(item)
+                result_list.append(item)
                 # TODO Переписати запис у бачу всім списком а не окремо `bulk_create` or `insert_many`
-                price, _ = Price.get_or_create(
+
+            prices = [
+                Price(
+                    id=item.get('id'),
                     price=item.get('new_price'),
                     old_price=item.get('old_price', None),
                     discount=item.get('discount', 0)
                 )
-                product, _ = Product.get_or_create(
+                for item in result_list
+            ]
+            Price.bulk_create(prices, batch_size=1000)
+            products = [
+                Product(
+                    id=item.get('id'),
                     title=item.get('title'),
                     monitor=item.get('monitor'),
                     cpu=item.get('cpu'),
                     memory=item.get('memory'),
                     drive=item.get('drive'),
-                    price=price
+                    price_id=prices[i].id
                 )
-                if not images:
-                    continue
-                for image_link in item.get('images'):
-                    Image.create(
-                        product=product,
-                        url_link=image_link
-                    )
-
-        # self._write_to_csv(result_list)
+                for i, item in enumerate(result_list)
+            ]
+            Product.bulk_create(products)
+            images = [
+                Image(
+                    product_id=products[i].id,
+                    url_link=image_link
+                )
+                for i, item in enumerate(result_list)
+                for image_link in item.get('images')
+            ]
+            Image.bulk_create(images)
 
     def _write_to_csv(self, data_list: list[dict[str, Any]]):
         with open('files/notebooks.csv', 'a', newline='', encoding='utf-8') as file:
